@@ -39,7 +39,9 @@ def depend(fork_from: Batch, join_to: Batch) -> None:
 
 
 def copy(batch: Batch, prev_stream: AbstractStream, next_stream: AbstractStream) -> None:
+    dummy_input = torch.randn(4800, 10000).to(1)
     batch[:] = Copy.apply(prev_stream, next_stream, *batch)
+    del dummy_input
 
 
 def wait(batch: Batch, prev_stream: AbstractStream, next_stream: AbstractStream) -> None:
@@ -111,7 +113,9 @@ class Pipeline:
 
         with spawn_workers(devices) as (in_queues, out_queues):
             for schedule in clock_cycles(m, n):
+                #dummy_input = torch.randn(4800, 10000).to(1)
                 self.fence(schedule, skip_trackers)
+                #del dummy_input
                 self.compute(schedule, skip_trackers, in_queues, out_queues)
 
     def fence(self,
@@ -139,7 +143,9 @@ class Pipeline:
 
             if j != 0:
                 prev_stream = copy_streams[j-1][i]
+                #dummy_input = torch.randn(4800, 10000).to(1)
                 copy(batches[i], prev_stream, next_stream)
+                #del dummy_input
 
     def compute(self,
                 schedule: List[Tuple[int, int]],
